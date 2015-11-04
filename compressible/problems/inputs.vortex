@@ -1,13 +1,14 @@
 # simple inputs files for the four-corner problem.
 
 [driver]
-max_steps = 10000
+max_steps = 10000000000
 tmax = 1
 
 
 [io]
 basename = vortex_
-n_out = 1
+n_out = 10000000000
+dt_out = 0.5
 
 
 [mesh]
