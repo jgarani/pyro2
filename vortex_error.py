@@ -12,10 +12,10 @@ usage = """
       compare the output in file from the vortex problem to
       the analytic solution.
 
-      usage: ./vortex_error.py file
+      usage: ./vortex_error.py file1 file2
 """
 
-if not len(sys.argv) == 2:
+if not len(sys.argv) == 3:
     print usage
     sys.exit(2)
 
@@ -24,10 +24,15 @@ try: file1 = sys.argv[1]
 except:
     print usage
     sys.exit(2)
+try: file2 = sys.argv[2]
+except:
+    print usage
+    sys.exit(2)
 
 myg, myd = patch.read(file1)
+myg2, myd2 = patch.read(file2)
 
-U_analytic = myg.scratch_array()
+U_analytic = myg2.scratch_array()
 
 
 U_numerical = myg.scratch_array()
@@ -39,8 +44,15 @@ density = myd.get_var("density")
 u = px/density
 v = py/density
 
+px2 = myd2.get_var("x-momentum")
+py2 = myd2.get_var("y-momentum")
+u2 = px2/density
+v2 = py2/density
+
 U_numerical.d[:,:] = np.sqrt(u.d*u.d + v.d*v.d)
 
+
+U_analytic.d[:,:] = np.sqrt(u2.d*u2.d + v2.d*v2.d)
 
 # use myg to create the analytic total velocity
 x_c = 0.5*(myg.xmin + myg.xmax)
@@ -60,8 +72,8 @@ for j in range(myg.jlo, myg.jhi+1):
             u_phi = 0
         u = -q_r*u_phi*((myg.y[j]-y_c)/r)
         v = q_r*u_phi*((myg.x[i]-x_c)/r)
-
-        U_analytic.d[i,j] = np.sqrt(u*u + v*v) 
+        
+        #U_analytic.d[i,j] = np.sqrt(u*u + v*v)
 
 
 

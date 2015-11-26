@@ -7,7 +7,7 @@ tmax = 1
 
 [io]
 basename = vortex_
-n_out = 10000000000
+n_out = 1000000000000
 dt_out = 0.5
 
 

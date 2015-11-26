@@ -50,44 +50,66 @@ def init_data(my_data, rp):
     p = myg.scratch_array()
 
     dens.d[:,:] = 1.0
-
+    
+    nsub = 4
+    
     j = myg.jlo
     while j <= myg.jhi:
         i = myg.ilo
         while i <= myg.ihi:
 
+            uzone = 0.0
+            vzone = 0.0
+            pzone = 0.0
+
+            for ii in range(nsub):
+                for jj in range(nsub):
+                    
+                    xsub = my_data.grid.xl[i] + (my_data.grid.dx/nsub)*(ii + 0.5)
+                    ysub = my_data.grid.yl[j] + (my_data.grid.dy/nsub)*(jj + 0.5)
+
             #initialize vortex problem
-            r=np.sqrt((myg.x[i]-x_c)**2 + (myg.y[j]-y_c)**2)
+                    r=np.sqrt((xsub-x_c)**2 + (ysub-y_c)**2)
            
            
             # phi_hat = -np.sin(phi)*x_hat+cos(phi)*y_hat    
    
-            q_r=(0.4*np.pi)/t_r       
+                    q_r=(0.4*np.pi)/t_r       
     
-            if r< 0.2:
-                u_phi = 5*r
-            elif r < 0.4:
-                u_phi = 2.0-5.0*r
-            else:
-                u_phi = 0
+                    if r< 0.2:
+                        u_phi = 5*r
+                    elif r < 0.4:
+                        u_phi = 2.0-5.0*r
+                    else:
+                        u_phi = 0
 
-            u = -q_r*u_phi*((myg.y[j]-y_c)/r)
-            v = q_r*u_phi*((myg.x[i]-x_c)/r)
+                    u = -q_r*u_phi*((myg.y[j]-y_c)/r)
+                    v = q_r*u_phi*((myg.x[i]-x_c)/r)
+                    
+                    uzone += u
+                    vzone += v
+
+
+            
+                    p_0 = (dens.d[i,j]/(gamma*(mach)**2)-(1.0/2.0)) #u_phimax is 1
+  
+                    if r<0.2:
+                        p_r = p_0+(25.0/2)*(r**2)
+                    elif r < 0.4:
+                        p_r = p_0 + (25.0/2)*(r**2) + 4*(1.0-5.0*r-math.log(0.2)+math.log(r))
+                    else:
+                        p_r = p_0 - 2.0 + 4.0*math.log(2.0)
+            
+                    pzone += p_r
+
+            u = uzone/(nsub*nsub)
+            v = vzone/(nsub*nsub)
 
             xmom.d[i,j] = dens.d[i,j]*u
             ymom.d[i,j] = dens.d[i,j]*v
-            
-            p_0 = (dens.d[i,j]/(gamma*(mach)**2)-(1.0/2.0)) #u_phimax is 1
-  
-            if r<0.2:
-                p_r = p_0+(25.0/2)*(r**2)
-            elif r < 0.4:
-                p_r = p_0 + (25.0/2)*(r**2) + 4*(1.0-5.0*r-math.log(0.2)+math.log(r))
-            else:
-                p_r = p_0 - 2.0 + 4.0*math.log(2.0)
-            
 
-            p.d[i,j] = p_r
+
+            p.d[i,j] = pzone/(nsub*nsub)
 
             i += 1
         j += 1
